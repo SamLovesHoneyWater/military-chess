@@ -1,5 +1,23 @@
 from board_utils import *
 from Piece import Piece
+import json
+
+def encode_dict(d):
+	# Convert dictionary to JSON string
+	json_string = json.dumps(d)
+
+	# Encode JSON string into bytes
+	encoded_data = json_string.encode()
+	return encoded_data
+
+def decode_dict(d):
+	# Decode bytes into a string
+	decoded_string = d.decode()
+
+	# Parse the string into a dictionary using JSON
+	decoded_dict = json.loads(decoded_string)
+	return decoded_dict
+
 
 def file_to_lines(file_name):
 	with open(file_name, encoding="utf-8") as f:
@@ -50,13 +68,13 @@ def lines_to_board(lines):
 			if name == BOMB and row == 0:
 				raise ValueError("Bomb must not be placed in the first row, but this is violated in row", line)
 
-			# Pieces in bases cannot move
-			if HALF_TERRAIN[row][col] == BASE:
-				movable = False
+			# Pieces in bases and traps cannot move
+			if HALF_TERRAIN[row][col] == BASE or name == TRAP:
+				moveable = False
 			else:
-				movable = True
+				moveable = True
 
-			new_piece = Piece(name, 0, (row, col), movable)
+			new_piece = Piece(name, 0, (row, col), moveable)
 			board[row][col] = new_piece
 			name_counts[name] += 1
 			col += 1
@@ -80,14 +98,16 @@ def init_full_board(my_board, opponent_board):
 		for piece in row:
 			if piece is None:
 				continue
-			piece.position = (i, piece.position[1])
+			#piece.position = (i, piece.position[1])
+			piece.team = 0  # Opponent team is 0
 		board.append(row)
 
 	for i, row in enumerate(my_board):
 		for piece in row:
 			if piece is None:
 				continue
-			piece.position = (i + BOARD_ROWS//2, piece.position[1])
+			#piece.position = (i + BOARD_ROWS//2, piece.position[1])
+			piece.team = 1  # Friendly team is 1
 		board.append(row)
 
 	return board
@@ -98,7 +118,4 @@ lines2 = file_to_lines(setup_folder + 'setup2.txt')
 opponent_half_board = lines_to_board(lines1)
 my_half_board = lines_to_board(lines2)
 board = init_full_board(my_half_board, opponent_half_board)
-pretty_print_board(board)
-
-while True:
-	turn = 
+display_board(board)
